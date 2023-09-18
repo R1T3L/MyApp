@@ -3,12 +3,14 @@ from bs4 import BeautifulSoup as bs
 import pandas as pd
 
 
-def get_exercise_name(exercise_link):
+def get_exercise_info(exercise_link):
     s = requests.get(exercise_link)
     soup = bs(s.text, "html.parser")
-    exercise_name = soup.find_all('h1')
-    for name in exercise_name:
-        return name.string
+    exercise_name = soup.find('h1').text.strip()
+    exercise_description_tag = soup.find('div', class_='post-text')
+    exercise_description = exercise_description_tag.text.strip() if exercise_description_tag else ''
+    exercise_info = exercise_name + '\n' + exercise_description
+    return exercise_info
 
 
 def scrape_exercises(url_template, output_filename):
@@ -23,8 +25,8 @@ def scrape_exercises(url_template, output_filename):
             exercise_link = el.a
             if exercise_link is not None:
                 exercise_link = exercise_link.get('href')
-                exercise_name = get_exercise_name(exercise_link)
-                exercise_list.append({'Exercise names': exercise_name})
+                exercise_info = get_exercise_info(exercise_link)
+                exercise_list.append({'Exercise names': exercise_info})
 
         next_page_link = soup.find('a', class_='nextpostslink')
         if next_page_link:
@@ -37,6 +39,6 @@ def scrape_exercises(url_template, output_filename):
 
 
 URL_TEMPLATE = "https://musclefit.info/category/uprazhneniya/grud/"
-EXERCISE_NAMES = "test1.csv"
+EXERCISE_NAMES = "test2.csv"
 
 scrape_exercises(URL_TEMPLATE, EXERCISE_NAMES)
